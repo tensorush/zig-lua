@@ -1,0 +1,34 @@
+name: Continuos Integration
+
+on:
+  push:
+    branches: [main]
+    paths: ["**.zig"]
+
+  pull_request:
+    branches: [main]
+    paths: ["**.zig"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: master
+
+      - name: Run tests
+        run: |
+          zig env
+          zig build test
+          mv -v ./zig-out/bin/* ./lua/
+          mv -v ./zig-out/lib/* ./lua/testes/libs/
+          cd ./lua/testes/
+          ../lua -W all.lua
