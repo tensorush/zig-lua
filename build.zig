@@ -11,7 +11,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     const lib_flags = FLAGS ++ .{switch (target_info.target.os.tag) {
         .linux => "-DLUA_USE_LINUX",
         .macos => "-DLUA_USE_MACOSX",
-        .windows => "-DLUA_USE_WINDOWS",
+        .windows => "", // will be automatically defined in lua/luaconf.h
         .ios => "-DLUA_USE_IOS",
         else => "-DLUA_USE_POSIX",
     }};
@@ -47,7 +47,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     lua_step.dependOn(&lua_install.step);
     b.default_step.dependOn(lua_step);
 
-    // Tests
+    // Tests (Linux-only)
     const tests_step = b.step("test", "Run tests");
     tests_step.dependOn(&lua_install.step);
 
