@@ -20,10 +20,11 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .name = "lua",
         .version = version,
         .target = target,
-        .optimize = .ReleaseSafe,
+        .optimize = .Debug,
         .link_libc = true,
     });
     lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &lib_flags);
+    lib.linkSystemLibrary("readline");
 
     const lib_install = b.addInstallArtifact(lib);
     lib_step.dependOn(&lib_install.step);
@@ -36,10 +37,11 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .name = "lua",
         .version = version,
         .target = target,
-        .optimize = .ReleaseFast,
+        .optimize = .Debug,
         .link_libc = true,
     });
     lua.addCSourceFiles(&(.{"lua/lua.c"} ++ CORE_FILES ++ LIB_FILES), &lib_flags);
+    lua.linkSystemLibrary("readline");
 
     const lua_install = b.addInstallArtifact(lua);
     lua_step.dependOn(&lua_install.step);
@@ -62,7 +64,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
             .optimize = .Debug,
             .link_libc = true,
         });
-        test_lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES ++ .{TEST_LIB_FILE}), &test_flags);
+        test_lib.addCSourceFiles(&(.{"lua/lua.c"} ++ CORE_FILES ++ LIB_FILES ++ .{TEST_LIB_FILE}), &test_flags);
         if (test_lib.name.len > 1) {
             if (test_lib.name[0] == '1') {
                 test_lib.addCSourceFile(TEST_LIB_FILES[0], &test_flags);
@@ -99,11 +101,10 @@ const FLAGS = .{
     "-Wc++-compat",
     "-Wold-style-definition",
     "-std=c99",
+    "-DLUA_USE_READLINE",
     "-fno-stack-protector",
     "-fno-common",
     "-march=native",
-    "-Wlogical-op",
-    "-Wno-aggressive-loop-optimizations",
 };
 
 const CORE_FILES = .{

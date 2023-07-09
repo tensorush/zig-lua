@@ -24,6 +24,9 @@ jobs:
         with:
           version: master
 
+      - name: Install readline
+        run: sudo apt install libreadline-dev
+
       - name: Run tests
         run: |
           zig env
