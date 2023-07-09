@@ -20,7 +20,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .name = "lua",
         .version = version,
         .target = target,
-        .optimize = .Debug,
+        .optimize = .ReleaseSafe,
         .link_libc = true,
     });
     lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &lib_flags);
@@ -37,7 +37,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .name = "lua",
         .version = version,
         .target = target,
-        .optimize = .Debug,
+        .optimize = .ReleaseFast,
         .link_libc = true,
     });
     lua.addCSourceFiles(&(.{"lua/lua.c"} ++ CORE_FILES ++ LIB_FILES), &lib_flags);
@@ -64,7 +64,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
             .optimize = .Debug,
             .link_libc = true,
         });
-        test_lib.addCSourceFiles(&(.{"lua/lua.c"} ++ CORE_FILES ++ LIB_FILES ++ .{TEST_LIB_FILE}), &test_flags);
+        test_lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES ++ .{TEST_LIB_FILE}), &test_flags);
         if (test_lib.name.len > 1) {
             if (test_lib.name[0] == '1') {
                 test_lib.addCSourceFile(TEST_LIB_FILES[0], &test_flags);
