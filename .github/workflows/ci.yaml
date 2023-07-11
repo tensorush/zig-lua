@@ -31,7 +31,3 @@ jobs:
         run: |
           zig env
           zig build test
-          mv -v ./zig-out/bin/* ./lua/
-          mv -v ./zig-out/lib/* ./lua/testes/libs/
-          cd ./lua/testes/
-          ../lua -W all.lua

@@ -8,14 +8,6 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     // Library
     const lib_step = b.step("lib", "Install library");
 
-    const lib_flags = FLAGS ++ .{switch (target_info.target.os.tag) {
-        .linux => "-DLUA_USE_LINUX",
-        .macos => "-DLUA_USE_MACOSX",
-        .windows => "", // will be automatically defined in lua/luaconf.h
-        .ios => "-DLUA_USE_IOS",
-        else => "-DLUA_USE_POSIX",
-    }};
-
     const lib = b.addStaticLibrary(.{
         .name = "lua",
         .version = version,
@@ -23,8 +15,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .optimize = .ReleaseSafe,
         .link_libc = true,
     });
-    lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &lib_flags);
-    lib.linkSystemLibrary("readline");
+    lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &.{});
 
     const lib_install = b.addInstallArtifact(lib);
     lib_step.dependOn(&lib_install.step);
@@ -36,14 +27,25 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     const lua = b.addExecutable(.{
         .name = "lua",
         .version = version,
+        .root_source_file = std.Build.FileSource.relative("lua/lua.c"),
         .target = target,
         .optimize = .ReleaseFast,
         .link_libc = true,
     });
-    lua.addCSourceFiles(&(.{"lua/lua.c"} ++ CORE_FILES ++ LIB_FILES), &lib_flags);
+    lua.defineCMacro("LUA_USE_READLINE", null);
+    lua.defineCMacro(switch (target_info.target.os.tag) {
+        .linux => "LUA_USE_LINUX",
+        .macos => "LUA_USE_MACOSX",
+        .windows => "", // will be automatically defined in lua/luaconf.h
+        .ios => "LUA_USE_IOS",
+        else => "LUA_USE_POSIX",
+    }, null);
+    lua.addCSourceFiles(&.{}, &FLAGS);
     lua.linkSystemLibrary("readline");
+    lua.linkLibrary(lib);
 
     const lua_install = b.addInstallArtifact(lua);
+    lua_install.dest_dir = .{ .custom = "../lua" };
     lua_step.dependOn(&lua_install.step);
     b.default_step.dependOn(lua_step);
 
@@ -61,7 +63,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         const test_lib = b.addSharedLibrary(.{
             .name = name,
             .target = target,
-            .optimize = .Debug,
+            .optimize = .ReleaseFast,
             .link_libc = true,
         });
         test_lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES ++ .{TEST_LIB_FILE}), &test_flags);
@@ -76,9 +78,15 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         test_lib.force_pic = true;
 
         const test_lib_install = b.addInstallArtifact(test_lib);
+        test_lib_install.dest_dir = .{ .custom = "../lua/testes/libs" };
         tests_step.dependOn(&test_lib_install.step);
     }
 
+    const lua_run = b.addRunArtifact(lua);
+    lua_run.cwd = "./lua/testes";
+    lua_run.addArgs(&.{ "-W", "all.lua" });
+
+    tests_step.dependOn(&lua_run.step);
     b.default_step.dependOn(tests_step);
 }
 
@@ -101,7 +109,6 @@ const FLAGS = .{
     "-Wc++-compat",
     "-Wold-style-definition",
     "-std=c99",
-    "-DLUA_USE_READLINE",
     "-fno-stack-protector",
     "-fno-common",
     "-march=native",
