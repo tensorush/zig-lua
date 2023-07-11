@@ -53,6 +53,10 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     const tests_step = b.step("test", "Run tests");
     tests_step.dependOn(&lua_install.step);
 
+    const lua_run = b.addRunArtifact(lua);
+    lua_run.addArgs(&.{ "-W", "all.lua" });
+    lua_run.cwd = "./lua/testes";
+
     const test_flags = .{ "-Wall", "-std=gnu99", "-O2" };
 
     inline for (TEST_LIB_FILES) |TEST_LIB_FILE| {
@@ -79,12 +83,8 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
 
         const test_lib_install = b.addInstallArtifact(test_lib);
         test_lib_install.dest_dir = .{ .custom = "../lua/testes/libs" };
-        tests_step.dependOn(&test_lib_install.step);
+        lua_run.step.dependOn(&test_lib_install.step);
     }
-
-    const lua_run = b.addRunArtifact(lua);
-    lua_run.cwd = "./lua/testes";
-    lua_run.addArgs(&.{ "-W", "all.lua" });
 
     tests_step.dependOn(&lua_run.step);
     b.default_step.dependOn(tests_step);
