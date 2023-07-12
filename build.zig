@@ -32,7 +32,6 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .optimize = .ReleaseFast,
         .link_libc = true,
     });
-    lua.defineCMacro("LUA_USE_READLINE", null);
     lua.defineCMacro(switch (target_info.target.os.tag) {
         .linux => "LUA_USE_LINUX",
         .macos => "LUA_USE_MACOSX",
@@ -40,10 +39,9 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .ios => "LUA_USE_IOS",
         else => "LUA_USE_POSIX",
     }, null);
-    lua.addCSourceFiles(&.{}, &FLAGS);
+    lua.defineCMacro("LUA_USE_READLINE", null);
+    lua.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &FLAGS);
     lua.linkSystemLibrary("readline");
-    lua.linkSystemLibrary("dl");
-    lua.linkLibrary(lib);
 
     const lua_install = b.addInstallArtifact(lua);
     lua_install.dest_dir = .{ .custom = "../lua" };
@@ -52,11 +50,11 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
 
     // Tests (Linux-only)
     const tests_step = b.step("test", "Run tests");
-    tests_step.dependOn(&lua_install.step);
 
     const lua_run = b.addRunArtifact(lua);
     lua_run.addArgs(&.{ "-W", "all.lua" });
     lua_run.cwd = "./lua/testes";
+    lua_run.step.dependOn(&lua_install.step);
 
     const test_flags = .{ "-Wall", "-std=gnu99", "-O2" };
 
