@@ -39,14 +39,9 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .ios => "LUA_USE_IOS",
         else => "LUA_USE_POSIX",
     }, null);
-    lua.defineCMacro("LUAI_ASSERT", null);
     lua.defineCMacro("LUA_USE_CTYPE", null);
     lua.defineCMacro("LUA_USE_APICHECK", null);
     lua.defineCMacro("LUA_USE_READLINE", null);
-    lua.defineCMacro("HARDMEMTESTS", null);
-    lua.defineCMacro("HARDSTACKTESTS", null);
-    lua.defineCMacro("EXTERNMEMCHECK", null);
-    lua.defineCMacro("EMERGENCYGCTESTS", null);
     lua.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &FLAGS);
     lua.linkSystemLibrary("readline");
 
