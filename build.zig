@@ -54,7 +54,6 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     const lua_run = b.addRunArtifact(lua);
     lua_run.addArgs(&.{ "-W", "all.lua" });
     lua_run.cwd = "./lua/testes";
-    lua_run.step.dependOn(&lua_install.step);
 
     const test_flags = .{ "-Wall", "-std=gnu99", "-O2" };
 
