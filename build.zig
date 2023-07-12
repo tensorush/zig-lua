@@ -42,6 +42,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     }, null);
     lua.addCSourceFiles(&.{}, &FLAGS);
     lua.linkSystemLibrary("readline");
+    lua.linkSystemLibrary("dl");
     lua.linkLibrary(lib);
 
     const lua_install = b.addInstallArtifact(lua);
