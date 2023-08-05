@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     });
     lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &.{});
 
-    const lib_install = b.addInstallArtifact(lib);
+    const lib_install = b.addInstallArtifact(lib, .{});
     lib_step.dependOn(&lib_install.step);
     b.default_step.dependOn(lib_step);
 
@@ -45,8 +45,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     lua.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &FLAGS);
     lua.linkSystemLibrary("readline");
 
-    const lua_install = b.addInstallArtifact(lua);
-    lua_install.dest_dir = .{ .custom = "../lua" };
+    const lua_install = b.addInstallArtifact(lua, .{ .dest_dir = .{ .override = .{ .custom = "../lua" } } });
     lua_step.dependOn(&lua_install.step);
     b.default_step.dependOn(lua_step);
 
@@ -73,16 +72,15 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         test_lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES ++ .{TEST_LIB_FILE}), &test_flags);
         if (test_lib.name.len > 1) {
             if (test_lib.name[0] == '1') {
-                test_lib.addCSourceFile(TEST_LIB_FILES[0], &test_flags);
+                test_lib.addCSourceFile(.{ .file = .{ .path = TEST_LIB_FILES[0] }, .flags = &test_flags });
             } else if (test_lib.name[1] == '1') {
-                test_lib.addCSourceFile(TEST_LIB_FILES[1], &test_flags);
+                test_lib.addCSourceFile(.{ .file = .{ .path = TEST_LIB_FILES[1] }, .flags = &test_flags });
             }
         }
-        test_lib.addIncludePath("lua");
+        test_lib.addIncludePath(.{ .path = "lua" });
         test_lib.force_pic = true;
 
-        const test_lib_install = b.addInstallArtifact(test_lib);
-        test_lib_install.dest_dir = .{ .custom = "../lua/testes/libs" };
+        const test_lib_install = b.addInstallArtifact(test_lib, .{ .dest_dir = .{ .override = .{ .custom = "../lua/testes/libs" } } });
         lua_run.step.dependOn(&test_lib_install.step);
     }
 
