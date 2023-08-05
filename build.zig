@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
     const version = .{ .major = 5, .minor = 4, .patch = 6 };
     const target_info = try std.zig.system.NativeTargetInfo.detect(target);
 
@@ -12,7 +13,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .name = "lua",
         .version = version,
         .target = target,
-        .optimize = .ReleaseSafe,
+        .optimize = optimize,
         .link_libc = true,
     });
     lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &.{});
@@ -29,7 +30,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         .version = version,
         .root_source_file = std.Build.FileSource.relative("lua/lua.c"),
         .target = target,
-        .optimize = .ReleaseFast,
+        .optimize = optimize,
         .link_libc = true,
     });
     lua.defineCMacro(switch (target_info.target.os.tag) {
@@ -66,7 +67,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
         const test_lib = b.addSharedLibrary(.{
             .name = name,
             .target = target,
-            .optimize = .ReleaseFast,
+            .optimize = optimize,
             .link_libc = true,
         });
         test_lib.addCSourceFiles(&(CORE_FILES ++ LIB_FILES ++ .{TEST_LIB_FILE}), &test_flags);

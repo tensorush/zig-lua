@@ -38,7 +38,7 @@
 
     ```zig
     const lua = b.dependency("lua", .{});
-    exe.addModule("lua", lua.module("lua"));
+    exe.addModule("lua", lua.artifact("lua"));
     ```
 
     </details>
