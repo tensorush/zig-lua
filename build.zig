@@ -28,7 +28,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     const lua = b.addExecutable(.{
         .name = "lua",
         .version = version,
-        .root_source_file = std.Build.FileSource.relative("lua/lua.c"),
+        .root_source_file = std.Build.FileSource.relative(LUA_DIR ++ "lua.c"),
         .target = target,
         .optimize = optimize,
         .link_libc = true,
@@ -46,7 +46,7 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
     lua.addCSourceFiles(&(CORE_FILES ++ LIB_FILES), &FLAGS);
     lua.linkSystemLibrary("readline");
 
-    const lua_install = b.addInstallArtifact(lua, .{ .dest_dir = .{ .override = .{ .custom = "../lua" } } });
+    const lua_install = b.addInstallArtifact(lua, .{ .dest_dir = .{ .override = .{ .custom = "../" ++ LUA_DIR } } });
     lua_step.dependOn(&lua_install.step);
     b.default_step.dependOn(lua_step);
 
@@ -78,16 +78,67 @@ pub fn build(b: *std.Build) std.zig.system.NativeTargetInfo.DetectError!void {
                 test_lib.addCSourceFile(.{ .file = .{ .path = TEST_LIB_FILES[1] }, .flags = &test_flags });
             }
         }
-        test_lib.addIncludePath(.{ .path = "lua" });
+        test_lib.addIncludePath(.{ .path = LUA_DIR });
         test_lib.force_pic = true;
 
-        const test_lib_install = b.addInstallArtifact(test_lib, .{ .dest_dir = .{ .override = .{ .custom = "../lua/testes/libs" } } });
+        const test_lib_install = b.addInstallArtifact(test_lib, .{ .dest_dir = .{ .override = .{ .custom = "../" ++ TEST_LIBS_DIR } } });
         lua_run.step.dependOn(&test_lib_install.step);
     }
 
     tests_step.dependOn(&lua_run.step);
     b.default_step.dependOn(tests_step);
 }
+
+const LUA_DIR = "lua/";
+
+const CORE_FILES = .{
+    LUA_DIR ++ "lapi.c",
+    LUA_DIR ++ "lcode.c",
+    LUA_DIR ++ "lctype.c",
+    LUA_DIR ++ "ldebug.c",
+    LUA_DIR ++ "ldo.c",
+    LUA_DIR ++ "ldump.c",
+    LUA_DIR ++ "lfunc.c",
+    LUA_DIR ++ "lgc.c",
+    LUA_DIR ++ "llex.c",
+    LUA_DIR ++ "lmem.c",
+    LUA_DIR ++ "lobject.c",
+    LUA_DIR ++ "lopcodes.c",
+    LUA_DIR ++ "lparser.c",
+    LUA_DIR ++ "lstate.c",
+    LUA_DIR ++ "lstring.c",
+    LUA_DIR ++ "ltable.c",
+    LUA_DIR ++ "ltests.c",
+    LUA_DIR ++ "ltm.c",
+    LUA_DIR ++ "lundump.c",
+    LUA_DIR ++ "lvm.c",
+    LUA_DIR ++ "lzio.c",
+};
+
+const LIB_FILES = .{
+    LUA_DIR ++ "lauxlib.c",
+    LUA_DIR ++ "lbaselib.c",
+    LUA_DIR ++ "lcorolib.c",
+    LUA_DIR ++ "ldblib.c",
+    LUA_DIR ++ "linit.c",
+    LUA_DIR ++ "liolib.c",
+    LUA_DIR ++ "lmathlib.c",
+    LUA_DIR ++ "loadlib.c",
+    LUA_DIR ++ "loslib.c",
+    LUA_DIR ++ "lstrlib.c",
+    LUA_DIR ++ "ltablib.c",
+    LUA_DIR ++ "lutf8lib.c",
+};
+
+const TEST_LIBS_DIR = LUA_DIR ++ "testes/libs/";
+
+const TEST_LIB_FILES = .{
+    TEST_LIBS_DIR ++ "lib1.c",
+    TEST_LIBS_DIR ++ "lib2.c",
+    TEST_LIBS_DIR ++ "lib11.c",
+    TEST_LIBS_DIR ++ "lib21.c",
+    TEST_LIBS_DIR ++ "lib22.c",
+};
 
 const FLAGS = .{
     "-Wall",
@@ -111,51 +162,4 @@ const FLAGS = .{
     "-fno-stack-protector",
     "-fno-common",
     "-march=native",
-};
-
-const CORE_FILES = .{
-    "lua/lapi.c",
-    "lua/lcode.c",
-    "lua/lctype.c",
-    "lua/ldebug.c",
-    "lua/ldo.c",
-    "lua/ldump.c",
-    "lua/lfunc.c",
-    "lua/lgc.c",
-    "lua/llex.c",
-    "lua/lmem.c",
-    "lua/lobject.c",
-    "lua/lopcodes.c",
-    "lua/lparser.c",
-    "lua/lstate.c",
-    "lua/lstring.c",
-    "lua/ltable.c",
-    "lua/ltests.c",
-    "lua/ltm.c",
-    "lua/lundump.c",
-    "lua/lvm.c",
-    "lua/lzio.c",
-};
-
-const LIB_FILES = .{
-    "lua/lauxlib.c",
-    "lua/lbaselib.c",
-    "lua/lcorolib.c",
-    "lua/ldblib.c",
-    "lua/linit.c",
-    "lua/liolib.c",
-    "lua/lmathlib.c",
-    "lua/loadlib.c",
-    "lua/loslib.c",
-    "lua/lstrlib.c",
-    "lua/ltablib.c",
-    "lua/lutf8lib.c",
-};
-
-const TEST_LIB_FILES = .{
-    "lua/testes/libs/lib1.c",
-    "lua/testes/libs/lib2.c",
-    "lua/testes/libs/lib11.c",
-    "lua/testes/libs/lib21.c",
-    "lua/testes/libs/lib22.c",
 };
